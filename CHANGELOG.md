@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows
 [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Authors section in the README.
 
 ## [1.0.0] - 2026-11-16
 ### Added

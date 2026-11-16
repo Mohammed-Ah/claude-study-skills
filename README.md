@@ -135,6 +135,11 @@ git tag v1.0.0 && git push origin v1.0.0
 
 See [CHANGELOG.md](CHANGELOG.md) for version history and [CONTRIBUTING.md](CONTRIBUTING.md) for how to propose changes.
 
+## Authors
+
+- **Mohammed Alabdullah** ([@Mohammed-Ah](https://github.com/Mohammed-Ah)): designed the study workflows, defined the skill requirements and tested them on COE 446 material.
+- Built together with **Claude** (Anthropic).
+
 ## License
 
 [MIT](LICENSE) © 2026 Mohammed Alabdullah
