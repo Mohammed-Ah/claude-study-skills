@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lecture Flashcards — Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f6; --surface:#ffffff; --surface-2:#f5f7fa; --border:#d8dfe8; --text:#18212d; --muted:#5b6778;
+  --accent:#0e7490; --accent-soft:#e0f2f7; --ok:#15803d; --ok-soft:#dcfce7; --bad:#c2410c; --bad-soft:#ffedd5;
+  --cur:#0e7490; --shadow:0 1px 2px rgba(16,24,40,.05),0 6px 20px rgba(16,24,40,.07); --focus:#0e7490;
+  --code-bg:#f1f4f8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f141b; --surface:#171e27; --surface-2:#1d2631; --border:#2c3846; --text:#e6ecf2; --muted:#9aa8b8;
+    --accent:#38bdd8; --accent-soft:#11303a; --ok:#4ade80; --ok-soft:#12301e; --bad:#fb923c; --bad-soft:#3a2010;
+    --cur:#38bdd8; --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35); --focus:#7dd3fc; --code-bg:#10161e;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --surface:#171e27; --surface-2:#1d2631; --border:#2c3846; --text:#e6ecf2; --muted:#9aa8b8;
+  --accent:#38bdd8; --accent-soft:#11303a; --ok:#4ade80; --ok-soft:#12301e; --bad:#fb923c; --bad-soft:#3a2010;
+  --cur:#38bdd8; --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35); --focus:#7dd3fc; --code-bg:#10161e;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg); color:var(--text); font:16px/1.55 "Atkinson Hyperlegible",system-ui,sans-serif; overflow-x:hidden}
+.wrap{max-width:860px; margin:0 auto; padding:20px 16px 48px}
+h1{font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:clamp(1.4rem,4vw,1.9rem); margin:0; letter-spacing:-.01em}
+h2{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:1.1rem; margin:0 0 10px}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.muted{color:var(--muted)}
+header{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px}
+.sub{color:var(--muted); margin:4px 0 0; font-size:.95rem}
+.legend{font-family:"JetBrains Mono",monospace; font-size:.72rem; color:var(--muted); margin-top:6px}
+button,select{font:inherit; color:inherit}
+.btn{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:7px 12px; cursor:pointer; font-size:.9rem}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn:disabled{opacity:.45; cursor:default}
+.btn.primary{background:var(--accent); color:#fff; border-color:var(--accent)}
+:root[data-theme="dark"] .btn.primary{color:#0f141b}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.primary{color:#0f141b}}
+.btn[aria-pressed="true"]{background:var(--bad-soft); border-color:var(--bad)}
+select{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:7px 8px; font-size:.9rem; max-width:100%}
+:focus-visible{outline:3px solid var(--focus); outline-offset:2px}
+.controls{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px}
+.stats{display:flex; flex-wrap:wrap; gap:6px 14px; font-family:"JetBrains Mono",monospace; font-size:.8rem; color:var(--muted); margin-bottom:12px}
+.stats b{color:var(--text)} .c-ok{color:var(--ok)} .c-bad{color:var(--bad)}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:18px; min-height:320px}
+.card-head{display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; font-size:.78rem; color:var(--muted); margin-bottom:12px}
+.card-head .src{background:var(--surface-2); border:1px solid var(--border); border-radius:6px; padding:1px 6px}
+.card-head .topic{color:var(--accent); font-weight:700}
+.chip{margin-left:auto; font-family:"JetBrains Mono",monospace; font-size:.72rem; font-weight:600; padding:2px 9px; border-radius:999px; border:1px solid var(--border)}
+.chip.untried{color:var(--muted)}
+.chip.current{color:var(--accent); background:var(--accent-soft); border-color:var(--accent)}
+.chip.correct{color:var(--ok); background:var(--ok-soft); border-color:var(--ok)}
+.chip.missed{color:var(--bad); background:var(--bad-soft); border-color:var(--bad)}
+.q{font-size:1.06rem; margin:0 0 12px}
+pre.code{background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:10px 12px; overflow-x:auto; margin:0 0 14px; font:13px/1.5 "JetBrains Mono",monospace; max-width:100%}
+.opts{display:grid; gap:8px}
+.opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%; background:var(--surface-2); border:1.5px solid var(--border); border-radius:10px; padding:10px 12px; cursor:pointer; transition:border-color .15s, background .15s}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt .key{font-family:"JetBrains Mono",monospace; font-weight:600; min-width:1.4em; height:1.4em; display:inline-grid; place-items:center; border-radius:5px; background:var(--surface); border:1px solid var(--border); font-size:.8rem; flex:none; margin-top:1px}
+.opt.right{border-color:var(--ok); background:var(--ok-soft)} .opt.right .key{background:var(--ok); color:#fff; border-color:var(--ok)}
+.opt.wrong{border-color:var(--bad); background:var(--bad-soft)} .opt.wrong .key{background:var(--bad); color:#fff; border-color:var(--bad)}
+.opt.dim{opacity:.6} .opt:disabled{cursor:default}
+.exp{margin-top:14px; padding:12px 14px; border-radius:10px; border-left:4px solid var(--ok); background:var(--ok-soft); font-size:.95rem}
+.exp.bad{border-left-color:var(--bad); background:var(--bad-soft)}
+.nav{display:flex; justify-content:space-between; align-items:center; margin:12px 0 18px}
+.counter{font-family:"JetBrains Mono",monospace; color:var(--muted)}
+.empty{padding:60px 10px; text-align:center; color:var(--muted)}
+.panel{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px 16px; margin-top:14px}
+.map{display:grid; grid-template-columns:repeat(auto-fill,minmax(36px,1fr)); gap:6px}
+.cell{font-family:"JetBrains Mono",monospace; font-size:.75rem; height:32px; border-radius:6px; border:1px solid var(--border); background:var(--surface-2); cursor:pointer; color:var(--muted)}
+.cell.correct{background:var(--ok); color:#fff; border-color:var(--ok)}
+.cell.missed{background:var(--bad); color:#fff; border-color:var(--bad)}
+.cell.cur{outline:2px solid var(--cur); outline-offset:1px; font-weight:700; color:var(--text)}
+.cell.cur.correct,.cell.cur.missed{color:#fff}
+.cell.out{opacity:.35}
+.weak-flag{margin-bottom:10px; font-size:.92rem}
+.wrow{display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto; gap:10px; align-items:center; padding:5px 0; border-top:1px solid var(--border)}
+.wrow:first-child{border-top:0}
+.wrow.weak .wname{color:var(--bad); font-weight:700}
+.wname{text-align:left; background:none; border:0; padding:0; cursor:pointer; font-size:.9rem; overflow-wrap:anywhere}
+.linkish{background:none; border:0; padding:0; cursor:pointer; color:var(--accent); text-decoration:underline; text-underline-offset:2px}
+.wname.linkish{color:inherit; text-decoration:none}
+.bar{display:flex; height:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; overflow:hidden}
+.b-ok{background:var(--ok)} .b-bad{background:var(--bad)}
+.wcount{font-size:.75rem; color:var(--muted)}
+footer{margin-top:16px; font-size:.78rem; color:var(--muted)}
+@media (max-width:520px){
+  .card{padding:14px}
+  .chip{margin-left:0}
+  .wrow{grid-template-columns:1fr auto}
+  .wrow .bar{grid-column:1 / -1; grid-row:2}
+}
+
+/* accent override: the build script replaces this block */
+:root{--accent:#0e7490;--accent-soft:#ddecef;--cur:#0e7490;--focus:#0e7490}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--accent:#38bdd8;--accent-soft:#173641;--cur:#38bdd8;--focus:#38bdd8}}
+:root[data-theme="dark"]{--accent:#38bdd8;--accent-soft:#173641;--cur:#38bdd8;--focus:#38bdd8}
+:root[data-theme="light"]{--accent:#0e7490;--accent-soft:#ddecef;--cur:#0e7490;--focus:#0e7490}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.fill{display:flex;gap:8px;flex-wrap:wrap}
+.fill input{flex:1 1 200px;min-width:0;background:var(--surface-2);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font:inherit;color:inherit}
+textarea{width:100%;background:var(--surface-2);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font:inherit;color:inherit;resize:vertical;margin-bottom:10px}
+.model{margin-top:4px;padding:12px 14px;border-radius:10px;border-left:4px solid var(--accent);background:var(--accent-soft)}
+.model-body{margin-top:6px}
+.selfgrade{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn.ok{border-color:var(--ok);color:var(--ok)} .btn.bad{border-color:var(--bad);color:var(--bad)}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important; scroll-behavior:auto !important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Demo deck: all card types</h1>
+      <p class="sub">4 MCQ · 2 fill-in · 2 short answer</p>
+      <div class="legend" id="legend"></div>
+    </div>
+    <button class="btn" id="theme" style="white-space:nowrap;flex:none" aria-label="Toggle light or dark theme">Theme</button>
+  </header>
+
+  <div class="controls">
+    <label class="mono" for="typeF" style="font-size:.78rem;color:var(--muted)">Type</label>
+    <select id="typeF"></select>
+    <label class="mono" for="topicF" style="font-size:.78rem;color:var(--muted)">Topic</label>
+    <select id="topicF"></select>
+    <button class="btn" id="shuffle">Shuffle</button>
+    <button class="btn" id="review" aria-pressed="false">Review missed</button>
+    <button class="btn" id="reset">Reset</button>
+  </div>
+  <div class="stats" id="stats" aria-live="polite"></div>
+
+  <main class="card" id="card" aria-live="polite"></main>
+
+  <div class="nav">
+    <button class="btn" id="prev">← Previous</button>
+    <span class="counter" id="counter"></span>
+    <button class="btn primary" id="next">Next →</button>
+  </div>
+
+  <section class="panel">
+    <h2>Card map</h2>
+    <div class="map" id="map"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Weak topics</h2>
+    <div class="weak-flag" id="weakFlag"></div>
+    <div id="weakRows"></div>
+  </section>
+
+  <footer>Keys: A–D answer · ← / → move between cards. Progress is kept in memory only, so refreshing the page clears it.</footer>
+</div>
+<script>
+const STATUS_LABELS = {"untried": "Not tried", "current": "Current", "correct": "Correct", "missed": "Missed"};
+// Small demo deck showing all three card types. Build it with:
+// python3 skills/lecture-flashcards/scripts/build.py --cards examples/flashcards/demo-cards.js --out /tmp/demo.html --title "Demo" --heading "Demo deck"
+const TOPICS = ["Link budgets", "Modulation", "Multiple access", "Cellular basics", "MIMO", "Mobility", "Security", "Architecture"];
+const CARDS = [
+ {type:"mcq", calc:true, src:"Demo · 1", topic:0,
+  q:"A transmitter sends 20 dBm through a path loss of 100 dB. What is the received power?",
+  code:"P_rx[dBm] = P_tx[dBm] − PL[dB]", opts:["−120 dBm","−80 dBm","0.2 dBm","120 dBm"], ans:1,
+  exp:"20 − 100 = −80 dBm. −120 dBm wrongly adds 20 to the loss; 0.2 dBm divides instead of subtracting in dB."},
+ {type:"fill", calc:true, src:"Demo · 2", topic:1,
+  q:"How many bits does each 64-QAM symbol carry?", ans:"6", accept:["six","6 bits"],
+  exp:"log2(64) = 6. A common slip is answering 8 (confusing it with 256-QAM)."},
+ {type:"short", calc:false, src:"Demo · 3", topic:2,
+  q:"Compare FDMA and TDMA in one exam-style answer.",
+  model:"1. FDMA gives each user its own frequency channel for the whole call; TDMA gives each user a recurring time slot on a shared carrier.\n2. Mechanism: FDMA separates users with filters; TDMA needs tight synchronisation and guard times.\n3. Key contrast: TDMA lets one radio serve many users and frees the handset to measure other cells between slots.\n4. Example: AMPS is FDMA; GSM combines FDMA (200 kHz carriers) with TDMA (8 slots).", exp:""},
+ {type:"mcq", calc:false, src:"Demo · 4", topic:3,
+  q:"Which statement about cell splitting is FALSE?", opts:["It increases capacity without new spectrum","It reduces the number of handovers","Halving the radius gives about 4× the cells","Transmit power is reduced in the new cells"], ans:1,
+  exp:"Smaller cells mean users cross boundaries more often, so handovers increase. The other three statements are true."},
+ {type:"fill", calc:false, src:"Demo · 5", topic:4,
+  q:"In TDD massive MIMO the gNB estimates the downlink channel from the uplink ____ (abbreviation).", ans:"SRS", accept:["sounding reference signal","sounding reference signals"],
+  exp:"Sounding Reference Signals plus channel reciprocity. CSI-RS + PMI feedback is the FDD method."},
+ {type:"mcq", calc:false, src:"Demo · 6", topic:5,
+  q:"Which handoff type is make-before-break?", opts:["Hard handoff in GSM","Soft handoff in WCDMA","Inter-RAT handoff from LTE to GSM","Any handoff between different carriers"], ans:1,
+  exp:"With reuse 1, a WCDMA UE can be connected to several Node Bs at once. GSM handoffs are break-before-make because neighbouring cells use different frequencies."},
+ {type:"short", calc:false, src:"Demo · 7", topic:6,
+  q:"Explain why GSM uses a TMSI.", model:"The TMSI is a temporary alias assigned by the VLR after authentication and sent encrypted. Using it instead of the permanent IMSI over the air stops eavesdroppers from tracking a subscriber. Only the VLR maps TMSI ↔ IMSI. Example: after a location update the network sends a new TMSI in steps 9–10 of registration.", exp:""},
+ {type:"mcq", calc:false, src:"Demo · 8", topic:7,
+  q:"Which O-RAN component runs xApps?", opts:["Non-RT RIC","SMO","Near-RT RIC","O-RU"], ans:2,
+  exp:"xApps run in the near-RT RIC (10 ms–1 s loops). rApps run in the non-RT RIC inside the SMO."}
+];
+
+/* Lecture Flashcards — app engine.
+ * Expects two globals defined before this script:
+ *   TOPICS : string[]                       (8–10 topic groups)
+ *   CARDS  : Card[]
+ *   STATUS_LABELS (optional) : {untried, current, correct, missed}
+ * Card = {
+ *   type  : "mcq" | "fill" | "short",
+ *   calc  : boolean,          // requires working something out
+ *   src   : string,           // e.g. "T3 · Slide 26"
+ *   topic : number,           // index into TOPICS
+ *   q     : string,
+ *   code? : string,           // monospace block (formula / given data / code)
+ *   opts? : string[4],        // mcq only
+ *   ans?  : number | string,  // mcq: option index; fill: canonical answer
+ *   accept?: string[],        // fill: extra accepted variants
+ *   model?: string,           // short: model answer (newlines kept)
+ *   exp   : string            // explanation
+ * }
+ */
+const LABELS = Object.assign(
+  {untried:"Not tried", current:"Current", correct:"Correct", missed:"Missed"},
+  typeof STATUS_LABELS === "object" ? STATUS_LABELS : {}
+);
+const TYPE_NAME = {mcq:"MCQ", fill:"Fill-in", short:"Short answer"};
+const L = ["A","B","C","D","E","F"];
+const state = CARDS.map(() => ({status:"untried", chosen:null, text:"", revealed:false}));
+let order = CARDS.map((_, i) => i), view = [], pos = 0;
+let typeF = "all", topicF = "all", reviewMode = false;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+
+/* ---------- fill-in answer matching ---------- */
+function norm(s){
+  return String(s).toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g,"")
+    .replace(/[×x]\s*10\^?/g,"e").replace(/[“”"'`]/g,"")
+    .replace(/[^a-z0-9.\/\-+e%]+/g," ").replace(/\s+/g," ").trim()
+    .replace(/(\w)s\b/g,"$1");             // crude plural fold
+}
+function num(s){
+  const t = String(s).replace(/,/g,"").trim().replace(/\s*%$/,"");
+  const f = t.match(/^(-?\d+(?:\.\d+)?)\s*\/\s*(-?\d+(?:\.\d+)?)$/);
+  if (f) return +f[1] / +f[2];
+  const n = t.match(/^-?\d*\.?\d+(?:e[-+]?\d+)?$/i);
+  return n ? parseFloat(t) : null;
+}
+function matches(input, card){
+  const cands = [card.ans, ...(card.accept || [])];
+  const a = norm(input), an = num(input);
+  return cands.some(c => {
+    if (norm(c) === a) return true;
+    const cn = num(c);
+    return an !== null && cn !== null && Math.abs(an - cn) <= Math.max(1e-9, Math.abs(cn) * 0.005);
+  });
+}
+
+/* ---------- deck building ---------- */
+function rebuild(keepIdx){
+  view = order.filter(i => {
+    const c = CARDS[i];
+    if (typeF === "calc" && !c.calc) return false;
+    if (["mcq","fill","short"].includes(typeF) && c.type !== typeF) return false;
+    if (topicF !== "all" && c.topic !== +topicF) return false;
+    if (reviewMode && state[i].status !== "missed") return false;
+    return true;
+  });
+  if (keepIdx != null){ const p = view.indexOf(keepIdx); pos = p >= 0 ? p : 0; }
+  if (pos >= view.length) pos = Math.max(0, view.length - 1);
+  render();
+}
+const isOpen = i => {
+  const s = state[i], t = CARDS[i].type;
+  return t === "short" ? !(s.revealed && s.status !== "untried" && s.graded) : s.chosen === null;
+};
+function chipFor(i){
+  if (view[pos] === i && isOpen(i)) return {cls:"current", label:LABELS.current};
+  const st = state[i].status;
+  return {cls:st, label:LABELS[st]};
+}
+
+/* ---------- rendering ---------- */
+function render(){
+  const area = $("#card");
+  if (!view.length){
+    area.innerHTML = `<div class="empty">${reviewMode ? "No missed cards here — nothing to review." : "No cards match these filters."}</div>`;
+    $("#counter").textContent = "0 / 0";
+  } else {
+    const i = view[pos], c = CARDS[i], s = state[i], chip = chipFor(i);
+    let body = "";
+    if (c.type === "mcq") body = renderMcq(c, s);
+    else if (c.type === "fill") body = renderFill(c, s);
+    else body = renderShort(c, s);
+    area.innerHTML = `
+      <div class="card-head">
+        <span class="mono">#${i + 1}</span>
+        <span class="mono src">${esc(c.src)}</span>
+        <span class="topic">${esc(TOPICS[c.topic])}</span>
+        <span class="type mono">${TYPE_NAME[c.type]}${c.calc ? " · Calc" : ""}</span>
+        <span class="chip ${chip.cls}">${esc(chip.label)}</span>
+      </div>
+      <p class="q">${esc(c.q)}</p>
+      ${c.code ? `<pre class="code"><code>${esc(c.code)}</code></pre>` : ""}
+      ${body}`;
+    wire(c, i);
+    $("#counter").textContent = `${pos + 1} / ${view.length}`;
+  }
+  $("#prev").disabled = pos <= 0;
+  $("#next").disabled = pos >= view.length - 1;
+  $("#review").setAttribute("aria-pressed", reviewMode);
+  $("#review").textContent = reviewMode ? "Exit review" : "Review missed";
+  renderStats(); renderMap(); renderWeak();
+}
+function renderMcq(c, s){
+  const done = s.chosen !== null;
+  const opts = c.opts.map((o, k) => {
+    let cls = "opt";
+    if (done) cls += k === c.ans ? " right" : k === s.chosen ? " wrong" : " dim";
+    return `<button class="${cls}" data-k="${k}" ${done ? "disabled" : ""}><span class="key">${L[k]}</span><span>${esc(o)}</span></button>`;
+  }).join("");
+  const exp = done ? `<div class="exp ${s.chosen === c.ans ? "ok" : "bad"}"><strong>${s.chosen === c.ans ? "Correct." : "Not quite — answer " + L[c.ans] + "."}</strong> ${esc(c.exp)}</div>` : "";
+  return `<div class="opts" role="group" aria-label="Answer options">${opts}</div>${exp}`;
+}
+function renderFill(c, s){
+  const done = s.chosen !== null;
+  const ok = s.status === "correct";
+  return `<div class="fill">
+      <label class="sr" for="fillIn">Your answer</label>
+      <input id="fillIn" type="text" autocomplete="off" value="${esc(s.text)}" ${done ? "disabled" : ""} placeholder="Type your answer">
+      <button class="btn primary" id="check" ${done ? "disabled" : ""}>Check</button>
+    </div>
+    ${done ? `<div class="exp ${ok ? "ok" : "bad"}"><strong>${ok ? "Correct." : "Not quite."}</strong>${ok ? "" : ` Accepted answer: <span class="mono">${esc(c.ans)}</span>.`} ${esc(c.exp)}</div>` : ""}`;
+}
+function renderShort(c, s){
+  const graded = s.graded;
+  return `<label class="sr" for="shortIn">Your answer</label>
+    <textarea id="shortIn" rows="5" placeholder="Write your answer first…" ${s.revealed ? "readonly" : ""}>${esc(s.text)}</textarea>
+    ${!s.revealed ? `<button class="btn primary" id="reveal">Show model answer</button>` : `
+      <div class="model"><strong>Model answer</strong><div class="model-body">${esc(c.model || "").replace(/\n/g, "<br>")}</div>${c.exp ? `<p class="muted">${esc(c.exp)}</p>` : ""}</div>
+      ${graded ? `<div class="exp ${s.status === "correct" ? "ok" : "bad"}"><strong>${s.status === "correct" ? "Marked: I had it." : "Marked: I missed points."}</strong></div>` :
+        `<div class="selfgrade"><button class="btn ok" id="had">I had it</button><button class="btn bad" id="missedPts">I missed points</button></div>`}`}`;
+}
+function wire(c, i){
+  if (c.type === "mcq") document.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => answerMcq(+b.dataset.k)));
+  if (c.type === "fill"){
+    const inp = $("#fillIn");
+    if (inp && !inp.disabled){
+      inp.addEventListener("input", e => state[i].text = e.target.value);
+      inp.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); checkFill(); } });
+      $("#check").addEventListener("click", checkFill);
+    }
+  }
+  if (c.type === "short"){
+    const ta = $("#shortIn");
+    if (ta) ta.addEventListener("input", e => state[i].text = e.target.value);
+    const r = $("#reveal"); if (r) r.addEventListener("click", () => { state[i].revealed = true; render(); });
+    const h = $("#had"); if (h) h.addEventListener("click", () => grade(true));
+    const m = $("#missedPts"); if (m) m.addEventListener("click", () => grade(false));
+  }
+}
+function answerMcq(k){
+  const i = view[pos], c = CARDS[i], s = state[i];
+  if (!view.length || c.type !== "mcq" || s.chosen !== null || k >= c.opts.length) return;
+  s.chosen = k; s.status = k === c.ans ? "correct" : "missed"; render();
+}
+function checkFill(){
+  const i = view[pos], s = state[i];
+  const v = ($("#fillIn") || {}).value || "";
+  if (!v.trim()) return;
+  s.text = v; s.chosen = v; s.status = matches(v, CARDS[i]) ? "correct" : "missed"; render();
+}
+function grade(had){
+  const i = view[pos], s = state[i];
+  s.graded = true; s.status = had ? "correct" : "missed"; render();
+}
+
+/* ---------- stats, map, weak topics ---------- */
+function renderStats(){
+  const per = {mcq:0, fill:0, short:0}; let calc = 0;
+  CARDS.forEach(c => { per[c.type]++; if (c.calc) calc++; });
+  const cor = state.filter(s => s.status === "correct").length;
+  const mis = state.filter(s => s.status === "missed").length, tried = cor + mis;
+  const parts = Object.entries(per).filter(([, n]) => n).map(([t, n]) => `<span>${n} ${TYPE_NAME[t]}</span>`);
+  if (calc) parts.push(`<span>${calc} calculation</span>`);
+  $("#stats").innerHTML = `<span><b>${CARDS.length}</b> cards</span>${parts.join("")}<span class="c-ok">✓ ${cor}</span><span class="c-bad">✗ ${mis}</span><span>score <b>${tried ? Math.round(100 * cor / tried) : 0}%</b> of ${tried} tried</span>`;
+}
+function renderMap(){
+  const m = $("#map");
+  m.innerHTML = CARDS.map((c, i) => `<button class="cell ${state[i].status} ${view[pos] === i ? "cur" : ""} ${view.includes(i) ? "" : "out"}" data-i="${i}" title="Card ${i + 1} · ${esc(TOPICS[c.topic])} · ${esc(LABELS[state[i].status])}" aria-label="Go to card ${i + 1}">${i + 1}</button>`).join("");
+  m.querySelectorAll(".cell").forEach(b => b.addEventListener("click", () => {
+    const i = +b.dataset.i;
+    if (!view.includes(i)){ typeF = "all"; topicF = "all"; reviewMode = false; $("#typeF").value = "all"; $("#topicF").value = "all"; }
+    rebuild(i);
+  }));
+}
+function renderWeak(){
+  const rows = TOPICS.map((t, ti) => {
+    const ids = CARDS.map((c, i) => c.topic === ti ? i : -1).filter(i => i >= 0);
+    const cor = ids.filter(i => state[i].status === "correct").length;
+    const mis = ids.filter(i => state[i].status === "missed").length, tried = cor + mis;
+    return {t, ti, n:ids.length, cor, mis, tried, weak: tried >= 2 && cor / tried < 0.7};
+  });
+  const flagged = rows.filter(r => r.weak);
+  $("#weakFlag").innerHTML = flagged.length
+    ? `<strong>Weak spots:</strong> ${flagged.map(r => `<button class="linkish" data-t="${r.ti}">${esc(r.t)}</button>`).join(", ")}`
+    : `<span class="muted">No weak topics flagged yet (a topic is flagged after 2+ tries below 70%).</span>`;
+  $("#weakRows").innerHTML = rows.map(r => `<div class="wrow ${r.weak ? "weak" : ""}">
+      <button class="wname linkish" data-t="${r.ti}">${r.weak ? "⚑ " : ""}${esc(r.t)}</button>
+      <div class="bar" aria-hidden="true"><span class="b-ok" style="width:${r.n ? 100 * r.cor / r.n : 0}%"></span><span class="b-bad" style="width:${r.n ? 100 * r.mis / r.n : 0}%"></span></div>
+      <span class="mono wcount">${r.cor}/${r.tried} · ${r.n}</span></div>`).join("");
+  document.querySelectorAll("[data-t]").forEach(b => b.addEventListener("click", () => {
+    topicF = b.dataset.t; $("#topicF").value = topicF; reviewMode = false; pos = 0; rebuild();
+  }));
+}
+
+/* ---------- controls ---------- */
+function init(){
+  const present = [...new Set(CARDS.map(c => c.type))];
+  $("#typeF").innerHTML = `<option value="all">All</option>` +
+    present.map(t => `<option value="${t}">${TYPE_NAME[t]}</option>`).join("") +
+    (CARDS.some(c => c.calc) ? `<option value="calc">Calculation</option>` : "");
+  $("#topicF").innerHTML = `<option value="all">All topics</option>` + TOPICS.map((t, i) => `<option value="${i}">${esc(t)}</option>`).join("");
+  const plain = LABELS.untried === "Not tried" && LABELS.current === "Current" && LABELS.correct === "Correct" && LABELS.missed === "Missed";
+  $("#legend").textContent = plain ? "" : `Status: ${LABELS.untried} = not tried · ${LABELS.current} = current · ${LABELS.correct} = correct · ${LABELS.missed} = missed`;
+  $("#typeF").addEventListener("change", e => { typeF = e.target.value; pos = 0; rebuild(); });
+  $("#topicF").addEventListener("change", e => { topicF = e.target.value; pos = 0; rebuild(); });
+  $("#prev").addEventListener("click", () => { if (pos > 0){ pos--; render(); } });
+  $("#next").addEventListener("click", () => { if (pos < view.length - 1){ pos++; render(); } });
+  $("#shuffle").addEventListener("click", () => {
+    for (let i = order.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+    pos = 0; rebuild();
+  });
+  $("#review").addEventListener("click", () => {
+    reviewMode = !reviewMode;
+    if (reviewMode) state.forEach(s => { if (s.status === "missed"){ s.chosen = null; s.text = ""; s.revealed = false; s.graded = false; } });
+    pos = 0; rebuild();
+  });
+  $("#reset").addEventListener("click", () => {
+    state.forEach(s => Object.assign(s, {status:"untried", chosen:null, text:"", revealed:false, graded:false}));
+    order = CARDS.map((_, i) => i); typeF = "all"; topicF = "all"; reviewMode = false;
+    $("#typeF").value = "all"; $("#topicF").value = "all"; pos = 0; rebuild();
+  });
+  $("#theme").addEventListener("click", () => {
+    const root = document.documentElement;
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+  });
+  document.addEventListener("keydown", e => {
+    if (e.target.matches("select, input, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key;
+    if (k === "ArrowLeft"){ if (pos > 0){ pos--; render(); } e.preventDefault(); }
+    else if (k === "ArrowRight"){ if (pos < view.length - 1){ pos++; render(); } e.preventDefault(); }
+    else if (/^[a-dA-D]$/.test(k) && view.length && CARDS[view[pos]].type === "mcq") answerMcq(L.indexOf(k.toUpperCase()));
+  });
+  rebuild();
+}
+init();
+
+</script>
+</body>
+</html>

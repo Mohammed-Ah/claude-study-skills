@@ -1,0 +1,916 @@
+// COE 446 — Topic 3 (slides 26–45) & Topic 4 (slides 1–36). 59 MCQ cards (19 calculation).
+const TOPICS = [
+ "Uplink power control",
+ "Capacity & spectrum",
+ "HetNets & small cells",
+ "Sectoring & MIMO",
+ "Channel assignment & NR",
+ "RAN architecture & energy",
+ "1G & GSM architecture",
+ "GSM call procedures",
+ "GSM radio link",
+ "GPRS, UMTS & HSPA"
+];
+const CARDS = [
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T3 · Slide 26",
+  "topic": 0,
+  "q": "A UE is allocated M = 4 resource blocks. Using the fractional power-control formula below, what does it transmit? (Δ_TF = 0, f(i) = 0)",
+  "code": "P = min{ Pmax , P0 + α·PL + 10·log10(M) + ΔTF + f(i) }\nPmax = 23 dBm   P0 = −80 dBm   α = 0.8   PL = 120 dB",
+  "opts": [
+   "16.0 dBm",
+   "23.0 dBm",
+   "22.0 dBm",
+   "28.0 dBm"
+  ],
+  "ans": 2,
+  "exp": "P0 + α·PL + 10log10(4) = −80 + 96 + 6.02 ≈ 22.0 dBm. That is below Pmax, so min{} returns 22.0 dBm. 23 dBm is a trap: it assumes the UE is capped, which only happens with α = 1 (−80 + 120 + 6 = 46 → 23). 16 dBm forgets the 10log10(M) bandwidth term, and 28 dBm uses 20log10(4) instead of 10log10(4)."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T3 · Slide 26",
+  "topic": 0,
+  "q": "With α = 0.7 and the UE well below Pmax, the UE moves so that its path loss rises by 10 dB. Closed-loop f(i) is unchanged. How does its received power at the gNB change?",
+  "code": "ΔP_tx = α · ΔPL\nΔP_rx = ΔP_tx − ΔPL",
+  "opts": [
+   "Unchanged — power control holds it at P0",
+   "Rises by 7 dB",
+   "Falls by 7 dB",
+   "Falls by 3 dB"
+  ],
+  "ans": 3,
+  "exp": "The UE only compensates 70 % of the extra loss: Tx rises 0.7 × 10 = 7 dB, but the channel takes 10 dB, so the received power drops by 10 − 7 = 3 dB. \"Unchanged\" would be true only with full compensation (α = 1). +7 dB is the change in transmit power, not received power."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 26",
+  "topic": 0,
+  "q": "An operator lowers α from 1.0 to 0.7 across its network. Which of the following is NOT a consequence?",
+  "opts": [
+   "Cell-edge UEs see lower uplink SINR and throughput",
+   "Received power at the gNB becomes independent of the UE's distance",
+   "Uplink interference into neighbouring cells drops",
+   "Edge UEs reach the Pmax ceiling only at a larger path loss"
+  ],
+  "ans": 1,
+  "exp": "A received power that doesn't depend on distance is the definition of full compensation (α = 1), which is the setting being abandoned. With α = 0.7, received power falls by 0.3 dB for every extra dB of path loss. The other three are exactly the trade-off the slide describes: weaker edge users, less interference, and less time pinned at Pmax."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 26",
+  "topic": 0,
+  "q": "In an FDD cell, a UE's uplink path loss differs from the downlink path loss it measured, so its open-loop power is consistently 4 dB too low. Which term corrects this?",
+  "opts": [
+   "f(i), the accumulated TPC commands from the gNB",
+   "Δ_TF, the transport-format adjustment",
+   "10log10(M), the resource-block term",
+   "α·PL, by retuning α upward"
+  ],
+  "ans": 0,
+  "exp": "P0 + α·PL is open-loop: the UE uses its own (downlink-based) estimate, so it can't see this error. Only f(i) is closed-loop: the gNB measures what actually arrives and sends +/− TPC steps until it's right. Δ_TF only reacts to the MCS, and changing α network-wide would affect every UE, not fix one UE's bias."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T3 · Slide 27",
+  "topic": 1,
+  "q": "A link has B = 20 MHz and SINR = 15 dB. What is its Shannon capacity?",
+  "code": "C = B · log2(1 + SINR)   (SINR in linear units)",
+  "opts": [
+   "≈ 80 Mb/s",
+   "≈ 70 Mb/s",
+   "≈ 300 Mb/s",
+   "≈ 101 Mb/s"
+  ],
+  "ans": 3,
+  "exp": "15 dB → 10^1.5 = 31.6 (linear). log2(1 + 31.6) = log2(32.6) ≈ 5.03 bit/s/Hz, and 5.03 × 20 MHz ≈ 100.6 Mb/s. 80 Mb/s comes from plugging in the dB value (log2(16) = 4). 70 Mb/s uses ln instead of log2. 300 Mb/s multiplies B by the dB number."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T3 · Slides 27, 31",
+  "topic": 1,
+  "q": "Using the planning identity, an operator doubles its bandwidth AND halves its cell radius, with spectral efficiency per cell unchanged. What is the area-throughput gain?",
+  "code": "Throughput ≈ Bandwidth × Spectral efficiency × Cell density",
+  "opts": [
+   "4×",
+   "6×",
+   "8×",
+   "16×"
+  ],
+  "ans": 2,
+  "exp": "Bandwidth ×2. Halving the radius quarters the cell area, so cell density ×4. The terms multiply: 2 × 4 = 8×. 6× adds the gains instead of multiplying them. 4× ignores the bandwidth (or treats halving the radius as ×2 cells and then doubles). 16× squares the result."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 28",
+  "topic": 1,
+  "q": "Which technique → capacity-lever pairing is WRONG?",
+  "opts": [
+   "Carrier aggregation → bandwidth (lever 1)",
+   "Pico cells under a macro → cell density (lever 2)",
+   "Dynamic channel assignment → cell density (lever 2)",
+   "256-QAM and MU-MIMO → spectral efficiency (lever 3)"
+  ],
+  "ans": 2,
+  "exp": "DCA adds no sites. The slide says it makes better use of the spectrum the operator already holds, so it raises the effective bandwidth and efficiency, not the cell count. The other three pairings come straight from the three levers: spectrum, cells, bits per hertz."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slides 29–30",
+  "topic": 1,
+  "q": "Which statement about spectrum options is FALSE?",
+  "opts": [
+   "3.5 GHz mid-band is the 5G workhorse with 60–100 MHz per operator",
+   "FR2 mmWave carriers can be 100–400 MHz wide but reach only ~100 m",
+   "Low band (<1 GHz) gives the most capacity per cell because it propagates furthest",
+   "In DSS, the LTE/NR split of one carrier is re-decided every slot"
+  ],
+  "ans": 2,
+  "exp": "Low band gives the most coverage, not capacity: carriers are only ~10 MHz wide, so bandwidth (and therefore throughput) is small. This mixes up reach with capacity. The trade-off on the slide runs the other way: higher frequency means more bandwidth but less coverage, which forces densification."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 30",
+  "topic": 1,
+  "q": "Navy radar is detected near the coast on a CBRS channel that a PAL licensee and a GAA enterprise network are both using. What does the SAS do?",
+  "opts": [
+   "Moves only the GAA user, because PAL holders paid at auction",
+   "Nothing — CBRS incumbents must tolerate shared use",
+   "Moves only the PAL user, because GAA users are free and unmanaged",
+   "Makes both the PAL and GAA users vacate the channel near the radar"
+  ],
+  "ans": 3,
+  "exp": "Tier 1 incumbents (Navy radar, satellite) are always protected from both lower tiers. A PAL is protected from GAA, but it still yields to Tier 1. The tempting wrong answer, \"only GAA moves\", applies the PAL-over-GAA rule to the wrong pair of tiers."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T3 · Slide 34",
+  "topic": 2,
+  "q": "A macro sector has 80 MHz at 5 bit/s/Hz. Four picos are added, reusing the same 80 MHz at 3 bit/s/Hz each after coordination. By what factor does total capacity grow compared with macro-only?",
+  "code": "Macro = B × SE\nPico layer = n × B × SE_pico\nGain = (Macro + Pico layer) / Macro",
+  "opts": [
+   "2.4×",
+   "3.4×",
+   "5.0×",
+   "0.6×"
+  ],
+  "ans": 1,
+  "exp": "Macro = 80 × 5 = 400 Mb/s. Each pico = 80 × 3 = 240 Mb/s, so 4 × 240 = 960 Mb/s. Total = 1360 Mb/s, and 1360 / 400 = 3.4×. 2.4× compares only the pico layer with the macro (forgetting the macro still carries traffic). 5× assumes the picos reach the macro's 5 bit/s/Hz. 0.6× is just 3/5."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T3 · Slide 34",
+  "topic": 2,
+  "q": "Following the previous example, the 4 picos cost $20k each and deliver 960 Mb/s together. What is the pico layer's cost per Mb/s?",
+  "opts": [
+   "≈ $200 per Mb/s",
+   "≈ $59 per Mb/s",
+   "≈ $21 per Mb/s",
+   "≈ $83 per Mb/s"
+  ],
+  "ans": 3,
+  "exp": "Total cost = 4 × $20k = $80k, and $80,000 / 960 Mb/s ≈ $83 per Mb/s. $200 divides by the macro's 400 Mb/s. $59 divides by the 1360 Mb/s total, giving the picos credit for macro capacity. $21 divides one pico's price by the whole layer's throughput."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T3 · Slide 31",
+  "topic": 2,
+  "q": "A city is re-planned so that the cell radius drops from 2 km to 0.5 km, with spectrum per cell unchanged. Roughly how many times more cells (and capacity) does this give?",
+  "code": "Cells ∝ 1 / R²",
+  "opts": [
+   "4×",
+   "8×",
+   "16×",
+   "2×"
+  ],
+  "ans": 2,
+  "exp": "(R_old / R_new)² = (2 / 0.5)² = 4² = 16×. The tempting 4× uses the slide's \"halve the radius\" rule, but here the radius is quartered. 4× is the ratio of the radii, not of the areas."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 32 (margin note)",
+  "topic": 2,
+  "q": "Which statement about LTE Rel-8 ICIC is FALSE?",
+  "opts": [
+   "ICIC stands for Inter-Carrier Interference Coordination",
+   "Cell centres reuse the whole band; only edge users are put on separate sub-bands",
+   "It works in the frequency domain",
+   "It cannot protect control channels that span the whole band, such as the PDCCH"
+  ],
+  "ans": 0,
+  "exp": "ICIC is Inter-CELL Interference Coordination: it manages interference between neighbouring cells on the same carrier, not between carriers. That correction is worth remembering for the exam. The other three statements describe Rel-8 ICIC correctly, including the control-channel gap that eICIC was later created to close."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 32",
+  "topic": 2,
+  "q": "Why did Rel-10 move from frequency-domain ICIC to time-domain eICIC (ABS) for macro + pico HetNets?",
+  "opts": [
+   "Muting whole subframes protects both control and data for pico edge users",
+   "ABS lets the pico use a separate carrier from the macro",
+   "Time-domain muting costs the macro no capacity",
+   "Frequency-domain ICIC cannot work with OFDMA"
+  ],
+  "ans": 0,
+  "exp": "In an almost-blank subframe the macro sends almost nothing, so the pico's edge users get clean airtime for their control channels and data alike. Frequency splitting can't protect the wideband PDCCH. ABS costs the macro the muted airtime, the pico still shares the macro's carrier, and Rel-8 ICIC is itself built on OFDMA."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 32",
+  "topic": 2,
+  "q": "A pico applies a +8 dB cell-range-expansion bias, but the macro does NOT configure any ABS. What happens to a UE in the expanded ring?",
+  "opts": [
+   "It gets better SINR because the pico is now its serving cell",
+   "It is handed back to the macro immediately by eICIC",
+   "Nothing changes — CRE only affects idle-mode UEs",
+   "It gets very poor SINR because the macro it now treats as interference is stronger than its serving pico"
+  ],
+  "ans": 3,
+  "exp": "In the expanded ring, the macro's signal is up to 8 dB stronger than the pico's, and the bias tricked the UE into attaching to the weaker cell. Without ABS, the macro becomes its strongest interferer. That's why the slide pairs CRE with eICIC: CRE offloads the UE and eICIC protects it."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 33",
+  "topic": 2,
+  "q": "A pico must go on a lamp post with mains power but no fibre nearby, and there is no line-of-sight path for a microwave link. Which approach does the slide suggest?",
+  "opts": [
+   "5G IAB, with the pico backhauled over the air by the macro",
+   "Give the pico its own dedicated carrier so it needs no coordination",
+   "A femtocell over the customer's DSL",
+   "Skip backhaul; small cells only need fronthaul"
+  ],
+  "ans": 0,
+  "exp": "Integrated Access and Backhaul uses NR itself: the macro donor serves the pico node over the air, so no trenching is needed. A dedicated carrier solves interference, not backhaul (and the slide says small cells should reuse the whole carrier). A femto is an indoor consumer product. Every cell needs backhaul toward the core."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T3 · Slide 35",
+  "topic": 3,
+  "q": "With N = 7 and path-loss exponent n = 4, an omni cell's worst-case S/I is about 18.7 dB. What is it with 60° sectoring (one first-tier interferer)?",
+  "code": "S/I = (D/R)^n / i0      D/R = √(3N)",
+  "opts": [
+   "≈ 23.4 dB",
+   "≈ 26.4 dB",
+   "≈ 18.7 dB",
+   "≈ 21.7 dB"
+  ],
+  "ans": 1,
+  "exp": "D/R = √21 ≈ 4.58, and 4.58⁴ ≈ 441. With i0 = 1, S/I = 441 → 10log10(441) ≈ 26.4 dB. 23.4 dB is the 120° case (i0 = 2 → 220.5). 18.7 dB is omni (i0 = 6)."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 35",
+  "topic": 3,
+  "q": "Which statement about sectoring is FALSE?",
+  "opts": [
+   "It cuts first-tier co-channel interferers from 6 to 2 for 120° sectors",
+   "It improves trunking efficiency because each sector has its own channels",
+   "The SIR gain can be traded for a smaller reuse factor N",
+   "A steerable beam is effectively a sector that can follow a user per slot"
+  ],
+  "ans": 1,
+  "exp": "Splitting a cell's channels into 3 smaller pools makes trunking efficiency worse: small pools block more often at the same total load. The slide lists this as a cost (\"channels are split per sector\"). The other statements are the benefits and the link to beamforming."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 36",
+  "topic": 3,
+  "q": "A 4×4 SU-MIMO link is set up between two rooftops with a clear line of sight and almost no scattering. What happens to the multiplexing gain?",
+  "opts": [
+   "It reaches 4 layers because both ends have 4 antennas",
+   "It doubles, because line of sight raises SNR",
+   "It collapses toward a single layer because the channel matrix is nearly rank-1",
+   "It is unaffected; rank depends only on min(Tx, Rx)"
+  ],
+  "ans": 2,
+  "exp": "min(Tx, Rx) is only an upper bound. The usable layers equal the channel's rank, which needs rich scattering so that each antenna pair sees a different path. In pure line of sight all paths look alike, H is roughly rank 1, and the gain collapses, exactly as the slide warns. Higher SNR helps one stream, not the number of streams."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 36 (margin note)",
+  "topic": 3,
+  "q": "A UE at the cell edge has very low SNR. What should the gNB do with its 4 antennas toward this UE?",
+  "opts": [
+   "Use them for diversity / beamforming gain on a single layer",
+   "Send 4 independent layers to maximise rate",
+   "Switch off 3 antennas to save power",
+   "Use them for MU-MIMO pairing with a cell-centre UE on the same beam"
+  ],
+  "ans": 0,
+  "exp": "Your note gets this exactly: high SNR → multiplexing, low SNR → diversity. At low SNR each of 4 streams would be too weak to decode, so the antennas are better used to boost the SNR of one stream, and the UE would report RI = 1. Multiplexing only pays off when every stream has enough SNR."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 36 (margin note)",
+  "topic": 3,
+  "q": "An operator wants 64T64R massive MIMO on an FDD band. How must the gNB learn the downlink channel?",
+  "opts": [
+   "Uplink SRS plus reciprocity, as in TDD",
+   "No CSI is needed; massive MIMO beams are fixed",
+   "The SSB sweep alone gives full per-antenna channel knowledge",
+   "The UE measures CSI-RS and reports a PMI (plus RI/CQI) back"
+  ],
+  "ans": 3,
+  "exp": "In FDD the uplink and downlink use different frequencies, so the uplink channel measured from SRS doesn't equal the downlink one: reciprocity fails. The gNB sends CSI-RS, and the UE reports a precoder index (PMI). SRS plus reciprocity is the TDD method. SSB sweeping only picks a coarse beam."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slides 36–37",
+  "topic": 3,
+  "q": "Two UEs sit in the same office window, at the same angle from a 64T64R gNB. Why can't MU-MIMO serve both on the same PRBs with full gain?",
+  "opts": [
+   "Their channels are highly correlated, so the precoder can't null one without nulling the other",
+   "MU-MIMO only supports one UE per beam by definition in 3GPP",
+   "Each UE needs 64 receive antennas",
+   "They would need different subcarrier spacings"
+  ],
+  "ans": 0,
+  "exp": "MU-MIMO separates users in space: the precoder steers a null onto each user at the others' positions. If two users have almost the same spatial signature, a null on one also kills the other's beam. Slide 37's limit: users must be spatially separable. The scheduler pairs users that are far apart in angle."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T3 · Slide 37",
+  "topic": 3,
+  "q": "A 5G cell has B = 80 MHz. MU-MIMO serves 6 users with 4 layers each, the per-layer spectral efficiency is 3 bit/s/Hz, and the overhead factor is 0.8. What is the cell throughput?",
+  "code": "T = layers × B × SE × overhead",
+  "opts": [
+   "≈ 1.15 Gb/s",
+   "≈ 5.76 Gb/s",
+   "≈ 4.61 Gb/s",
+   "≈ 0.77 Gb/s"
+  ],
+  "ans": 2,
+  "exp": "Layers = 6 × 4 = 24. T = 24 × 80 MHz × 3 × 0.8 = 4608 Mb/s ≈ 4.61 Gb/s. 5.76 Gb/s forgets the 0.8 overhead (the ~20 % used for control and reference signals). 1.15 Gb/s counts users instead of layers (6). 0.77 Gb/s counts one user's 4 layers only."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 38",
+  "topic": 4,
+  "q": "Which FCA vs DCA statement is FALSE?",
+  "opts": [
+   "FCA performs better than DCA under heavy traffic load",
+   "DCA needs no frequency planning",
+   "A DCA base station's radios only need to cover the channels currently assigned to it",
+   "DCA has higher computational effort and call-setup signalling"
+  ],
+  "ans": 2,
+  "exp": "Under DCA any channel in the pool might be assigned to the cell, so its radio equipment must cover all possible channels. Covering only the allocated channels is the FCA row of the table. The counter-intuitive \"FCA wins at heavy load\" is TRUE: at high load, DCA's on-demand picks pack channels worse than FCA's optimised plan."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 39",
+  "topic": 4,
+  "q": "Which is NOT a 5G NR feature compared with LTE?",
+  "opts": [
+   "Cell-specific reference signals sent in every subframe across the band",
+   "Polar codes for control and LDPC for data",
+   "Mini-slots and slots as short as 0.125 ms",
+   "Flexible, dynamic TDD"
+  ],
+  "ans": 0,
+  "exp": "Always-on CRS is LTE. NR's lean carrier replaced them with a periodic SSB and on-demand CSI-RS, which cuts both interference and energy. A common trap is to swap the codes (turbo/convolutional are LTE; LDPC data plus polar control is NR)."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T3 · Slides 39–40 (margin note)",
+  "topic": 4,
+  "q": "An NR carrier uses μ = 2 (60 kHz SCS). How many slots fit in one 1 ms subframe, and how wide is one resource block?",
+  "code": "SCS = 15 kHz · 2^μ     slot = 1 ms / 2^μ (14 symbols)\nRB = 12 subcarriers",
+  "opts": [
+   "2 slots; 360 kHz",
+   "4 slots; 180 kHz",
+   "1 slot; 720 kHz",
+   "4 slots; 720 kHz"
+  ],
+  "ans": 3,
+  "exp": "μ = 2 → slot = 1/4 ms = 0.25 ms, so 4 slots per subframe. RB = 12 × 60 kHz = 720 kHz. 2 slots / 360 kHz is μ = 1 (30 kHz, like your note's two 0.5 ms slots). 180 kHz assumes an RB is always 180 kHz, which is only true at 15 kHz."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T3 · Slide 40 (margin note)",
+  "topic": 4,
+  "q": "In one slot, three users report the instantaneous achievable rate r and past average throughput R̄ shown below. Which user does Proportional Fair schedule, and which does Max C/I schedule?",
+  "code": "User A: r = 10 Mb/s, R̄ = 5 Mb/s\nUser B: r = 4 Mb/s,  R̄ = 1 Mb/s\nUser C: r = 20 Mb/s, R̄ = 20 Mb/s\nPF metric = r / R̄",
+  "opts": [
+   "PF → C, Max C/I → C",
+   "PF → A, Max C/I → C",
+   "PF → B, Max C/I → A",
+   "PF → B, Max C/I → C"
+  ],
+  "ans": 3,
+  "exp": "PF metrics: A = 10/5 = 2, B = 4/1 = 4, C = 20/20 = 1, so PF picks B, the user with a low average (as your note says, a low average earns more resources). Max C/I ignores fairness and picks the highest r, which is C (20 Mb/s). PF → A wrongly ranks users by r − R̄ or by r alone among the 'fair' ones."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 41",
+  "topic": 5,
+  "q": "Which function belongs to the core network rather than the RAN?",
+  "opts": [
+   "HARQ retransmission",
+   "Uplink power control",
+   "Subscriber authentication and identity",
+   "Handover execution and interference management"
+  ],
+  "ans": 2,
+  "exp": "The RAN owns decisions that must happen at radio speed: scheduling, power control, retransmission, handover and interference management. The core owns identity, mobility state, policy and internet access, so authentication (AUSF/UDM in 5G, AuC/HLR in GSM) is core. HARQ must respond within a few slots, so it can't live in the core."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slides 41, 44",
+  "topic": 5,
+  "q": "Which generation-to-RAN-structure match is WRONG?",
+  "opts": [
+   "2G: radio split from control (BTS + BSC)",
+   "3G: control centralised in the RNC",
+   "3G: the controller removed, base station only",
+   "5G: base station split into CU + DU + RU"
+  ],
+  "ans": 2,
+  "exp": "Removing the controller (a flat RAN, eNB only) happened in 4G LTE. 3G did the opposite: it centralised radio logic, including soft-handoff combining, in a powerful RNC. The trend is centralised → flat → disaggregated."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 43",
+  "topic": 5,
+  "q": "An energy-saving feature may sleep only if the unit can wake within 1 ms, so that latency KPIs are protected. Which sleep depth saves the most while meeting this?",
+  "opts": [
+   "Symbol / micro sleep (≈ 30 µs, ~10 %)",
+   "Slot / light sleep (≈ 700 µs, ~20 %)",
+   "Channel shutdown (≈ 30 s, ~40 %)",
+   "Cell / deep sleep (≈ 15 min, ~70 %)"
+  ],
+  "ans": 1,
+  "exp": "Slot sleep wakes in about 700 µs (< 1 ms) and saves about 20 %, double the symbol sleep. Channel shutdown and deep sleep save more but take seconds to minutes to wake. That's the slide's rule: deeper sleep saves more but takes longer to wake and risks KPIs."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T3 · Slides 42–43",
+  "topic": 5,
+  "q": "At night a gNB mutes RF chains from 64T64R to 32T32R. How much array gain does it give up?",
+  "code": "Array gain = 10·log10(M)",
+  "opts": [
+   "≈ 3 dB",
+   "≈ 6 dB",
+   "≈ 32 dB",
+   "≈ 15 dB"
+  ],
+  "ans": 0,
+  "exp": "10log10(64) − 10log10(32) = 18.06 − 15.05 ≈ 3.0 dB: halving M costs 3 dB. 6 dB uses 20log10 (an amplitude-ratio slip). 15 dB is the remaining gain, not the loss. 32 is the number of chains switched off."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slide 45",
+  "topic": 5,
+  "q": "An operator moves to C-RAN with CPRI fronthaul and deploys a 100 MHz, 64-antenna carrier. Fronthaul links overload even at 3 a.m. with almost no users. Why?",
+  "opts": [
+   "CPRI carries raw I/Q samples per antenna, so its rate scales with bandwidth × antennas, not with traffic",
+   "The BBU pool is too small at night",
+   "Backhaul congestion from the packet core spills into fronthaul",
+   "CPRI rate scales with the number of connected users"
+  ],
+  "ans": 0,
+  "exp": "CPRI streams digitised time-domain samples for every antenna all the time, so idle carriers still need huge fronthaul rates. That's the price of C-RAN's very fast fronthaul, and it's why 5G moved to eCPRI with the 7.2 split, where traffic is roughly proportional to load. The tempting \"scales with users\" answer describes eCPRI or backhaul, not CPRI."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T3 · Slides 43, 45",
+  "topic": 5,
+  "q": "Which O-RAN statement is FALSE?",
+  "opts": [
+   "The near-RT RIC runs xApps with 10 ms – 1 s control loops",
+   "Long-term energy-saving policies driven by traffic prediction run as non-RT RIC rApps",
+   "Each step from D-RAN to O-RAN changes the radio interface itself",
+   "Open fronthaul and a RIC let third-party software steer the RAN"
+  ],
+  "ans": 2,
+  "exp": "The slide says each step keeps the previous step's radio. What changes is where the functions run and who may supply them. Energy policies (slide 43) are a classic non-RT RIC rApp job, and xApps run in the near-RT loop."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T4 · Slide 2",
+  "topic": 6,
+  "q": "An AMPS operator uses reuse factor N = 7. Roughly how many voice channels does each cell get?",
+  "code": "416 channels per operator = 395 traffic + 21 control",
+  "opts": [
+   "≈ 59",
+   "≈ 56",
+   "≈ 395",
+   "≈ 3"
+  ],
+  "ans": 1,
+  "exp": "Only the 395 traffic channels carry voice: 395 / 7 ≈ 56 per cell. 59 divides all 416, wrongly counting the 21 FSK control channels as voice. 395 forgets that reuse splits channels across the cluster. 3 is 21 / 7, the control channels per cell."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 2",
+  "topic": 6,
+  "q": "Which statement about AMPS is FALSE?",
+  "opts": [
+   "Uplink and downlink are separated by 45 MHz (FDD)",
+   "Its 21 control channels also used analogue FM",
+   "Each user holds one 30 kHz channel for the whole call (FDMA)",
+   "Each 25 MHz band is split between two operators"
+  ],
+  "ans": 1,
+  "exp": "Even 1G used digital signalling for control: the 21 control channels use FSK. Only the 395 voice channels are analogue FM. 869 − 824 = 45 MHz duplex spacing, and the two operators each get about 12.5 MHz per direction (≈ 416 × 30 kHz)."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 14",
+  "topic": 6,
+  "q": "Which statement about GSM authentication is FALSE?",
+  "opts": [
+   "The AuC and the SIM both hold the secret key Ki",
+   "The network sends RAND, and the SIM returns SRES = A3(Ki, RAND)",
+   "Kc = A8(Ki, RAND) is the cipher key later used by A5 on the radio link",
+   "Ki is sent over the air, encrypted, during registration"
+  ],
+  "ans": 3,
+  "exp": "Ki never leaves the SIM or the AuC. Only the random challenge (RAND) and the response (SRES) cross the air, which is the whole point of challenge–response. Both sides derive Kc locally. (Also remember GSM authentication is one-way: the phone never authenticates the network.)"
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 14",
+  "topic": 6,
+  "q": "A thief puts their own valid, paid-up SIM into a stolen handset. Which register can stop the phone from getting service?",
+  "opts": [
+   "HLR, by deleting the subscriber",
+   "VLR, by refusing the TMSI",
+   "AuC, by failing the SRES check",
+   "EIR, through the handset's IMEI on the black list"
+  ],
+  "ans": 3,
+  "exp": "The SIM is valid, so the HLR, VLR and AuC all see an authentic subscriber, and the SRES check passes. Only the EIR tracks the equipment (IMEI) separately from the subscriber (IMSI), so it can blacklist the stolen handset."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slides 8, 10, 11",
+  "topic": 6,
+  "q": "A call moves between two cells that are under DIFFERENT BSCs but the same MSC. Who must coordinate the handoff?",
+  "opts": [
+   "The BTS of the new cell alone",
+   "The old BSC alone, since it owns the call",
+   "The MSC",
+   "The HLR, since the location changed"
+  ],
+  "ans": 2,
+  "exp": "A BSC can only manage handoffs inside its own BSS. A handoff across BSCs (inter-BSS) is controlled by the MSC/NSS. If the cells were under the same BSC, the BSC would handle it alone. The HLR only tracks which VLR serves the user; it isn't involved in handoffs."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 17",
+  "topic": 7,
+  "q": "In a Mobile Originating Call to a PSTN number, which entity is NOT consulted?",
+  "opts": [
+   "HLR",
+   "VLR",
+   "GMSC",
+   "BSS"
+  ],
+  "ans": 0,
+  "exp": "For an outgoing call, the MSC checks the subscriber against the VLR (steps 3–4). The VLR already holds a copy of the profile from registration, so the HLR isn't needed. That's exactly why the VLR exists. The GMSC and BSS carry the call (steps 5–10). The HLR is essential for terminated calls, not originated ones."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 18",
+  "topic": 7,
+  "q": "In a Mobile Terminated Call, the GMSC asks the HLR where the subscriber is. What does it get back that lets it route the call?",
+  "opts": [
+   "The exact cell ID of the mobile",
+   "The subscriber's IMSI",
+   "The TMSI",
+   "A routing number (MSRN) for the serving MSC, obtained from the current VLR"
+  ],
+  "ans": 3,
+  "exp": "The HLR knows only which VLR/MSC serves the user. It asks that VLR (steps 4–5), gets a roaming number (MSRN), and returns it to the GMSC (step 6), which forwards the call (step 7). The exact cell is unknown until paging (10–13). That's why the MSC pages the whole location area."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slides 15–16",
+  "topic": 7,
+  "q": "During registration, which step comes immediately BEFORE the network assigns a TMSI?",
+  "opts": [
+   "Authentication check (MSC ↔ VLR)",
+   "Channel assigned to the MS",
+   "Location update request",
+   "Entry to VLR and HLR"
+  ],
+  "ans": 0,
+  "exp": "The order is 1–4 radio channel, 5 location update request, 6–8 authentication (8 = check), 9–10 TMSI assignment and ACK, 11 VLR/HLR update, 12 release. The TMSI is sent only after authentication passes and ciphering can start, so it's never sent in the clear. The VLR/HLR entry comes after the TMSI, not before."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slides 15–16",
+  "topic": 7,
+  "q": "Why does GSM assign a TMSI instead of using the IMSI over the air?",
+  "opts": [
+   "The IMSI is too long to fit in a burst",
+   "The HLR cannot store IMSIs",
+   "The TMSI also serves as the encryption key",
+   "To hide the subscriber's permanent identity from eavesdroppers who could track them"
+  ],
+  "ans": 3,
+  "exp": "Repeatedly broadcasting the permanent IMSI would let anyone with a receiver track a person. The TMSI is a temporary local alias, sent encrypted and changed over time, and only the VLR knows its mapping to the IMSI. It is not a cipher key (that's Kc)."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 18",
+  "topic": 7,
+  "q": "An operator makes its location areas much LARGER. What is the main trade-off?",
+  "opts": [
+   "Fewer location updates, but each incoming call must page more cells",
+   "More location updates and less paging",
+   "No effect on signalling, only on handoff",
+   "More HLR lookups per outgoing call"
+  ],
+  "ans": 0,
+  "exp": "Idle phones update only when they cross a location-area boundary, so bigger areas mean fewer updates (less uplink signalling and battery). But for an MTC the MSC pages every cell in the area (steps 10–11), so bigger areas mean more paging load. Smaller areas reverse the trade-off."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T4 · Slide 23",
+  "topic": 8,
+  "q": "A half-rate GSM traffic channel gets one slot every OTHER frame. What is its gross rate?",
+  "code": "Full rate: 114 bits/slot × 24 slots / 120 ms = 22.8 kb/s",
+  "opts": [
+   "22.8 kb/s",
+   "13 kb/s",
+   "11.4 kb/s",
+   "33.85 kb/s"
+  ],
+  "ans": 2,
+  "exp": "Every other frame gives 12 slots per 120 ms multiframe: 114 × 12 / 0.12 s = 11.4 kb/s, half of 22.8. That's how half-rate doubles capacity to 16 users per carrier. 13 kb/s is the full-rate speech codec output, not a channel rate. 33.85 kb/s is 270.833/8, the raw share that ignores overhead."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T4 · Slide 22 (margin note)",
+  "topic": 8,
+  "q": "What fraction of a GSM normal-burst slot period carries user payload bits?",
+  "code": "tail 3 | data 57 | S 1 | training 26 | S 1 | data 57 | tail 3 | guard 8.25",
+  "opts": [
+   "≈ 73 %",
+   "≈ 77 %",
+   "≈ 95 %",
+   "≈ 36 %"
+  ],
+  "ans": 0,
+  "exp": "Payload = 2 × 57 = 114 bits. The slot period = 148 + 8.25 = 156.25 bits (your note: total 156.25). 114 / 156.25 ≈ 73 %. 77 % divides by 148 and forgets the guard. 95 % is 148/156.25, the burst-versus-guard ratio. 36 % counts only one 57-bit half."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T4 · Slides 4, 21",
+  "topic": 8,
+  "q": "GSM timing advance runs from 0 to 63 steps of one bit period (≈ 3.69 µs) and compensates the ROUND-TRIP delay. What maximum cell radius does this allow?",
+  "code": "bit = 1 / 270.833 kb/s ≈ 3.69 µs\nd = c · t_round_trip / 2",
+  "opts": [
+   "≈ 69.8 km",
+   "≈ 34.9 km",
+   "≈ 17.4 km",
+   "≈ 3.5 km"
+  ],
+  "ans": 1,
+  "exp": "63 × 3.69 µs ≈ 232.6 µs round trip. Divided by 2 that's 116.3 µs one way, and 116.3 µs × 3×10⁸ m/s ≈ 34.9 km. This is the 35 km limit on slide 4, and it's set by timing, not transmit power. 69.8 km forgets to halve the round trip. 17.4 km halves it twice."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T4 · Slides 21–22 (margin note)",
+  "topic": 8,
+  "q": "With slow frequency hopping, a user's carrier changes once per TDMA frame while its slot stays fixed. How many hops per second is that?",
+  "code": "frame = 8 slots = 4.615 ms",
+  "opts": [
+   "≈ 1733 hops/s",
+   "≈ 8.3 hops/s",
+   "≈ 217 hops/s",
+   "≈ 4.6 hops/s"
+  ],
+  "ans": 2,
+  "exp": "One hop per frame gives 1 / 4.615 ms ≈ 216.7 ≈ 217 hops/s. 1733 hops/s is one hop per slot (1/0.577 ms), but the slot doesn't change. 8.3 hops/s is one per 120 ms multiframe. As your note says, the frequency changes while the user's slot stays fixed."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T4 · Slides 20, 23",
+  "topic": 8,
+  "q": "An operator has 48 GSM carriers and uses reuse N = 4. If every timeslot is used as a HALF-RATE traffic channel, how many voice channels does each cell get?",
+  "opts": [
+   "96",
+   "384",
+   "48",
+   "192"
+  ],
+  "ans": 3,
+  "exp": "48 / 4 = 12 carriers per cell. Each carrier has 8 slots, and half-rate gives 2 users per slot: 12 × 8 × 2 = 192. 96 is the full-rate figure. 384 forgets to divide by N (48 × 8). 48 confuses carriers with channels. (Strictly, a few slots per cell go to signalling, but the question asks for the arithmetic.)"
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 22 (margin note)",
+  "topic": 8,
+  "q": "Why is GSM's 26-bit training sequence placed in the MIDDLE of the burst?",
+  "opts": [
+   "So the channel estimate is as close as possible to all the data bits as the channel changes during the burst",
+   "To mark the start and end of the slot",
+   "To carry the stealing flags",
+   "To give the guard time a known pattern"
+  ],
+  "ans": 0,
+  "exp": "The receiver compares the known pattern with what arrived, estimates the multipath channel, and trains the adaptive equaliser. At high speed the channel drifts within 577 µs, so a midamble keeps the estimate \"fresh\" for both 57-bit halves. Marking the start and end is the job of the 3-bit tail fields."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 22 (margin note)",
+  "topic": 8,
+  "q": "During a call, a handover command must reach the phone immediately. How does GSM deliver it without waiting for the slow SACCH?",
+  "opts": [
+   "It moves the call to a free timeslot in the same frame",
+   "It steals one 57-bit half of a traffic burst and sets the stealing flag (S = 1) to mark it as control",
+   "It sends it on the unused 26th frame",
+   "It increases the training sequence length"
+  ],
+  "ans": 1,
+  "exp": "The S (stealing) bits say whether each data half carries user traffic (0) or control (1). Stealing speech bits for FACCH signalling causes a brief audio glitch but gets urgent messages through at once. A user can't change slot within the same frame (your note), and the idle frame is reserved for neighbour measurements."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 20",
+  "topic": 8,
+  "q": "Why does GSM's GMSK suit battery-powered handsets better than EDGE's 8-PSK?",
+  "opts": [
+   "GMSK carries 3 bits per symbol",
+   "GMSK has a constant envelope, so the power amplifier can run in efficient non-linear mode",
+   "GMSK needs no channel coding",
+   "8-PSK cannot be used on 200 kHz carriers"
+  ],
+  "ans": 1,
+  "exp": "GMSK changes only frequency and phase, never amplitude, so a cheap, efficient saturated amplifier works. 8-PSK (EDGE) packs 3 bits per symbol but has a varying envelope that needs a linear, less efficient amplifier. GMSK carries only 1 bit per symbol (your slide 24 note), and EDGE does run on the same 200 kHz carriers."
+ },
+ {
+  "type": "mcq",
+  "calc": true,
+  "src": "T4 · Slide 24",
+  "topic": 9,
+  "q": "A GPRS phone uses 4 downlink slots with coding scheme CS-2 (13.4 kb/s per slot). What is its peak downlink rate?",
+  "opts": [
+   "53.6 kb/s",
+   "171.2 kb/s",
+   "85.6 kb/s",
+   "107.2 kb/s"
+  ],
+  "ans": 0,
+  "exp": "4 × 13.4 = 53.6 kb/s. 171.2 kb/s is the theoretical GPRS maximum (8 slots × 21.4 kb/s with CS-4). 85.6 kb/s uses CS-4 on 4 slots. 107.2 kb/s uses CS-2 on all 8 slots. Real phones were limited by their multislot class."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slides 24–27",
+  "topic": 9,
+  "q": "A user's phone moves from one SGSN's area to another during a long download, and the TCP session survives. Which node keeps the user's IP address fixed and re-points the tunnel?",
+  "opts": [
+   "The new SGSN, which assigns a new IP address",
+   "The MSC",
+   "The BSC's packet control unit",
+   "The GGSN, the mobility anchor that maps the IP address to the serving SGSN"
+  ],
+  "ans": 3,
+  "exp": "The GGSN is the logical interface to the Internet. It holds the mobile's IP address and routes its packets over GTP to whichever SGSN currently serves it, so only the tunnel endpoint changes. The SGSN handles local mobility and delivery. If the IP address changed, TCP would break. The MSC is the voice side, which GPRS leaves unchanged."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 29 (margin note)",
+  "topic": 9,
+  "q": "What actually causes the brief 'connected to neither cell' gap in a GSM hard handoff?",
+  "opts": [
+   "Neighbouring GSM cells use different frequencies, so the phone must drop the old link before retuning to the new one",
+   "Neighbouring cells' coverage never overlaps",
+   "The RNC must combine both links first",
+   "WCDMA's reuse-1 carrier forces it"
+  ],
+  "ans": 0,
+  "exp": "Coverage usually does overlap. The gap comes from break-before-make: with different carriers in neighbouring cells, a phone with one radio can't stay on both. WCDMA's soft handoff works because every cell uses the same carrier (reuse 1), so the phone can hold an active set of 2–3 Node Bs at once (make-before-break)."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 31",
+  "topic": 9,
+  "q": "A UMTS UE is in soft handoff between a Node B under RNC-1 (its serving RNC) and a Node B under RNC-2. Which interface carries the second link's data to RNC-1 for combining?",
+  "opts": [
+   "Iub",
+   "Iu-PS",
+   "Iur",
+   "Uu"
+  ],
+  "ans": 2,
+  "exp": "Iur connects RNC to RNC. It has no GSM equivalent and exists so that the drift RNC (RNC-2) can forward frames to the serving RNC without involving the core. Iub is Node B ↔ RNC, Iu goes to the core, and Uu is the air interface."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 29",
+  "topic": 9,
+  "q": "Why does WCDMA need fast closed-loop power control (about 1500 Hz) while GSM manages with slow power control?",
+  "opts": [
+   "To support voice activity detection",
+   "WCDMA uses higher-order modulation",
+   "GSM phones have no power amplifier",
+   "All users share one carrier at the same time, so a near phone would drown out a far one (near–far problem)"
+  ],
+  "ans": 3,
+  "exp": "In CDMA, users are separated only by codes on the same frequency. Each user's signal is interference to the others, so all must arrive at roughly equal power. Fast control also tracks fast fading. GSM users are separated in time and frequency, so a strong neighbour in another slot doesn't swamp you. VAD is a separate capacity feature."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slide 34",
+  "topic": 9,
+  "q": "A UMTS cell is already loaded. Users then walk deeper indoors and interference pushes the load over the threshold, with no new calls arriving. Which RRM function acts?",
+  "opts": [
+   "Admission control",
+   "Load control",
+   "Handoff control adding a cell to the active set",
+   "The packet scheduler admitting new bearers"
+  ],
+  "ans": 1,
+  "exp": "Admission control is preventive: it only decides about new connections. When load exceeds the threshold for other reasons (users moving, the channel changing), load control is corrective. It lowers best-effort bit rates, delays packets, moves users to other carriers or GSM, and as a last resort drops low-priority calls."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slides 35–36 (margin note)",
+  "topic": 9,
+  "q": "Which statement about HSDPA is FALSE?",
+  "opts": [
+   "Scheduling moved from the RNC to the Node B with a 2 ms TTI",
+   "Users farther away get a more robust MCS (QPSK, low code rate), so lower throughput",
+   "HSDPA uses roughly constant power with variable rate, unlike Release 99's power-controlled fixed rate",
+   "HARQ stands for Hybrid Adaptive Repeat Request and discards a failed packet before the retransmission"
+  ],
+  "ans": 3,
+  "exp": "Two errors: it is Automatic Repeat reQuest, and HARQ keeps the soft bits of the failed packet and combines them with the retransmission (chase combining or incremental redundancy), just as your note says: 'keeps previous info of the retransmitted data'. The other three are the core HSDPA changes."
+ },
+ {
+  "type": "mcq",
+  "calc": false,
+  "src": "T4 · Slides 28, 30–32",
+  "topic": 9,
+  "q": "What did UMTS Release 99 change compared with GSM/GPRS?",
+  "opts": [
+   "It replaced the core network with an all-IP core",
+   "It kept the GSM/GPRS core (MSC, HLR, SGSN, GGSN) and replaced the radio access with WCDMA and the UTRAN",
+   "It merged the CS and PS domains",
+   "It removed the radio controller, leaving the base station only"
+  ],
+  "ans": 1,
+  "exp": "The key insight on slide 30 is that 3G has the same architecture as 2.5G except for the radio access network. NodeB and RNC replaced BTS and BSC, there were new interfaces (Iub, Iur, Iu) and new names. The all-IP core with merged domains and the controller-less RAN both came with 4G LTE."
+ }
+];
