@@ -1,0 +1,24 @@
+# Build output
+dist/
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# Scratch / test output
+*.png
+!docs/**/*.png
+/tmp/
+cards.local.js
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

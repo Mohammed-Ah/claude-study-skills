@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate SKILL.md frontmatter
+        run: python3 scripts/validate_skills.py
+
+      - name: Syntax-check scripts and template engine
+        run: |
+          node --check skills/lecture-flashcards/assets/app.js
+          node --check skills/lecture-flashcards/scripts/check_cards.js
+          python3 -m py_compile skills/lecture-flashcards/scripts/*.py scripts/*.py
+
+      - name: Validate example decks
+        run: |
+          for f in examples/flashcards/*-cards.js; do
+            node skills/lecture-flashcards/scripts/check_cards.js "$f"
+          done
+
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          python3 -m playwright install --with-deps chromium
+
+      - name: Build and smoke-test example pages
+        run: |
+          python3 skills/lecture-flashcards/scripts/build.py \
+            --cards examples/flashcards/demo-cards.js --out /tmp/demo.html \
+            --title "Demo" --heading "Demo deck"
+          python3 skills/lecture-flashcards/scripts/smoke_test.py /tmp/demo.html
+          python3 skills/lecture-flashcards/scripts/smoke_test.py examples/flashcards/coe446-t3-t4-flashcards.html
+
+      - name: Package skills
+        run: bash scripts/package_skills.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skill-zips
+          path: dist/*.zip
