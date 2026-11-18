@@ -3,8 +3,8 @@
 
 Usage:
   python3 build.py --cards cards.js --out index.html \
-      --title "COE 446 Flashcards — Topic 3 & 4" \
-      --heading "COE 446 · Mobile Computing Flashcards" \
+      --title "BIO 201 Flashcards — Topic 3 & 4" \
+      --heading "BIO 201 · Cell Biology Flashcards" \
       --subtitle "Topic 3 (slides 26–45) · Topic 4 (slides 1–36)" \
       [--accent "#0e7490" --accent-dark "#38bdd8"] \
       [--status "Idle,Connected,ACK,NACK"]

@@ -23,7 +23,7 @@ Attach a lecture PDF and call:
 /lecture-deep-dive                      → markdown study guide
 /lecture-deep-dive deck                 → guide + PPTX + PDF deck
 /lecture-deep-dive slides 26-45         → only that slide range
-/lecture-deep-dive COE 446 Topic 5      → sets the course/topic in the title
+/lecture-deep-dive BIO 201 Topic 5      → sets the course/topic in the title
 ```
 
 What it does:
@@ -31,7 +31,7 @@ What it does:
 - Explains every chart and table, and recomputes every worked example.
 - Confirms or corrects your handwritten margin notes.
 - Points out slide typos.
-- Ends with a cheat sheet and suggests a chat name ("COE 446 – Topic N: Chapter").
+- Ends with a cheat sheet and suggests a chat name ("<Course> – Topic N: <Chapter>").
 
 ### `/lecture-flashcards`
 
@@ -163,7 +163,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and [CONTRIBUTING.md](CONTR
 
 ## Authors
 
-- **Mohammed Alabdullah** ([@Mohammed-Ah](https://github.com/Mohammed-Ah)): designed the study workflows, defined the skill requirements and tested them on COE 446 material.
+- **Mohammed Alabdullah** ([@Mohammed-Ah](https://github.com/Mohammed-Ah)): designed the study workflows, defined the skill requirements and tested them on real course material.
 - Built together with **Claude** (Anthropic).
 
 ## License
