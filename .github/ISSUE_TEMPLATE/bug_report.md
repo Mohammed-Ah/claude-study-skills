@@ -1,10 +1,10 @@
 ---
 name: Bug report
-about: A skill produced wrong output or the flashcard page misbehaves
+about: A skill produced wrong output, a report is mis-formatted, or the flashcard page misbehaves
 labels: bug
 ---
 
-**Skill:** lecture-deep-dive / lecture-flashcards
+**Skill:** lecture-deep-dive / lecture-flashcards / write-report
 
 **What you called** (e.g. `/lecture-flashcards min 40, mcq+calc`):
 

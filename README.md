@@ -3,14 +3,15 @@
 [![CI](https://github.com/Mohammed-Ah/claude-study-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohammed-Ah/claude-study-skills/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Two [Claude skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) for turning university lecture slides into exam prep:
+Three [Claude skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) for university coursework: two turn lecture slides into exam prep, and one writes assignment reports in a fixed house format.
 
 | Skill | Call it with | What you get |
 |---|---|---|
 | **lecture-deep-dive** | `/lecture-deep-dive` | A slide-by-slide markdown study guide that explains every slide, figure and worked example in depth, numbered to match the original slides. Optionally a matching PPTX + PDF deck. |
 | **lecture-flashcards** | `/lecture-flashcards` | An interactive flashcard / quiz page (one self-contained HTML file, published as an artifact) with MCQ, calculation, fill-in and short-answer cards pitched harder than the slides. |
+| **write-report** | `/write-report` | A finished Word (.docx) report or homework write-up in one house format: Times New Roman, fixed heading sizes, Word-only line spacing, with sections added or dropped to fit the assignment. |
 
-Built for COE 446 (Mobile Computing) at KFUPM, but both skills work for any slide-based course.
+Built for COE 446 (Mobile Computing) and COE 444 (Network Design) at KFUPM, but the skills work for any course.
 
 ---
 
@@ -59,14 +60,39 @@ The page has:
 
 Try the built examples: [`examples/flashcards/demo-flashcards.html`](examples/flashcards/demo-flashcards.html) (all card types) and [`examples/flashcards/coe446-t3-t4-flashcards.html`](examples/flashcards/coe446-t3-t4-flashcards.html) (59 cards). Download and open them in a browser.
 
+### `/write-report`
+
+Attach the assignment (and any configs, outputs or screenshots) and call:
+
+```
+/write-report                            → report for the attached assignment
+/write-report COE 444 HW3                → sets the course and assignment in the title
+/write-report lab report                 → lab-report structure
+/write-report ID 2022xxxxx, section 51   → fills the header block
+```
+
+House format:
+
+| Element | Size |
+|---|---|
+| Report title | 18 pt bold |
+| Name, ID, section | 12 pt |
+| Question number / section heading | 16 pt bold |
+| Question part / sub-heading | 14 pt bold |
+| Answer / body text | 12 pt |
+
+- Times New Roman throughout; small size adjustments allowed as long as the hierarchy holds.
+- Line spacing uses only Word's built-in presets, never a custom value.
+- Sections are flexible: homework gets Question → parts → answers; lab and project reports add objective, topology, configuration, verification and so on only when the brief asks for them.
+
 ---
 
 ## Install
 
 ### claude.ai (web, desktop, mobile)
-1. Download `lecture-deep-dive.zip` and `lecture-flashcards.zip` from the [latest release](https://github.com/Mohammed-Ah/claude-study-skills/releases/latest), or build them yourself with `bash scripts/package_skills.sh`.
+1. Download `lecture-deep-dive.zip`, `lecture-flashcards.zip` and `write-report.zip` from the [latest release](https://github.com/Mohammed-Ah/claude-study-skills/releases/latest), or build them yourself with `bash scripts/package_skills.sh`.
 2. Go to **Settings → Capabilities → Skills → Upload skill** and upload each zip.
-3. Call them with `/lecture-deep-dive` and `/lecture-flashcards`.
+3. Call them with `/lecture-deep-dive`, `/lecture-flashcards` and `/write-report`.
 
 ### Claude Code
 ```bash
@@ -91,6 +117,8 @@ skills/
     scripts/build.py         cards.js + template → one self-contained HTML page
     scripts/check_cards.js   validates a deck (counts, answer indices, A–D spread)
     scripts/smoke_test.py    headless Chrome test at phone width
+  write-report/
+    SKILL.md                 report format, flexible structure, build + check steps
 examples/
   deep-dive/                 study guides produced by lecture-deep-dive
   flashcards/                example decks (cards.js) and built pages
@@ -127,7 +155,7 @@ const CARDS = [
 
 ### Releasing
 
-Push a version tag. The Release workflow packages both skills and attaches the zips to a GitHub release:
+Push a version tag. The Release workflow packages every skill and attaches the zips to a GitHub release:
 
 ```bash
 git tag v1.0.0 && git push origin v1.0.0
@@ -137,7 +165,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and [CONTRIBUTING.md](CONTR
 
 ## Authors
 
-- **Mohammed Alabdullah** ([@Mohammed-Ah](https://github.com/Mohammed-Ah)): designed the study workflows, defined the skill requirements and tested them on COE 446 material.
+- **Mohammed Alabdullah** ([@Mohammed-Ah](https://github.com/Mohammed-Ah)): designed the study workflows, defined the skill requirements and tested them on COE 446 and COE 444 material.
 - Built together with **Claude** (Anthropic).
 
 ## License

@@ -1,6 +1,6 @@
 ---
 name: Feature or new skill request
-about: Suggest an improvement to a skill or a new study skill
+about: Suggest an improvement to a skill or a new study/coursework skill
 labels: enhancement
 ---
 

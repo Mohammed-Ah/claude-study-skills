@@ -7,6 +7,7 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 ### Added
 - Authors section in the README.
+- `write-report` skill: Word (.docx) reports and homework write-ups in a fixed house format (Times New Roman; title 18 bold, question 16 bold, part 14 bold, body 12), Word-only line-spacing presets, and a flexible section structure that follows each assignment's requirements.
 
 ## [1.0.0] - 2026-11-16
 ### Added
