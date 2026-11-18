@@ -11,8 +11,6 @@ Three [Claude skills](https://docs.claude.com/en/docs/agents-and-tools/agent-ski
 | **lecture-flashcards** | `/lecture-flashcards` | An interactive flashcard / quiz page (one self-contained HTML file, published as an artifact) with MCQ, calculation, fill-in and short-answer cards pitched harder than the slides. |
 | **write-report** | `/write-report` | A finished Word (.docx) report or homework write-up in one house format: Times New Roman, fixed heading sizes, Word-only line spacing, with sections added or dropped to fit the assignment. |
 
-Built for COE 446 (Mobile Computing) and COE 444 (Network Design) at KFUPM, but the skills work for any course.
-
 ---
 
 ## Quick start
@@ -66,7 +64,7 @@ Attach the assignment (and any configs, outputs or screenshots) and call:
 
 ```
 /write-report                            → report for the attached assignment
-/write-report COE 444 HW3                → sets the course and assignment in the title
+/write-report CS 101 HW3                 → sets the course and assignment in the title
 /write-report lab report                 → lab-report structure
 /write-report ID 2022xxxxx, section 51   → fills the header block
 ```
@@ -165,7 +163,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and [CONTRIBUTING.md](CONTR
 
 ## Authors
 
-- **Mohammed Alabdullah** ([@Mohammed-Ah](https://github.com/Mohammed-Ah)): designed the study workflows, defined the skill requirements and tested them on COE 446 and COE 444 material.
+- **Mohammed Alabdullah** ([@Mohammed-Ah](https://github.com/Mohammed-Ah)): designed the study workflows, defined the skill requirements and tested them on COE 446 material.
 - Built together with **Claude** (Anthropic).
 
 ## License

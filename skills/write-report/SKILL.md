@@ -11,7 +11,7 @@ Turns an assignment (question sheet, lab handout, project brief) into a finished
 
 ```
 /write-report                            → report for the attached assignment
-/write-report COE 444 HW3                → sets the course and assignment in the title
+/write-report CS 101 HW3                 → sets the course and assignment in the title
 /write-report lab report                 → lab-report structure (objective, topology, config, verification…)
 /write-report ID 2022xxxxx, section 51   → fills the header block
 ```
