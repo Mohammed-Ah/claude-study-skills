@@ -13,7 +13,7 @@ Turns a lecture slide deck into a study guide that explains every slide in depth
 /lecture-deep-dive                      → deep dive of the attached PDF (markdown guide)
 /lecture-deep-dive deck                 → guide + matching PPTX + PDF deck
 /lecture-deep-dive slides 26-45         → only that slide range
-/lecture-deep-dive COE 446 Topic 5      → sets the course/topic used in the title
+/lecture-deep-dive BIO 201 Topic 5      → sets the course/topic used in the title
 ```
 Uploading a lecture PDF with no message (in a course project) also triggers this skill.
 
